@@ -1,0 +1,29 @@
+services:
+  database:
+    image: mysql:8.0.41-debian
+    volumes:
+      - ./mysql-database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql:/var/lib/mysql
+    env_file: mysql-database/database.env
+  backend:
+    build: ./spring-backend
+    restart: on-failure
+    depends_on:
+      - database
+    env_file: spring-backend/backend.env
+  frontend:
+    build: ./react-frontend
+    env_file: react-frontend/frontend.env
+    depends_on:
+      - backend
+    ports:
+      - 3000:3000
+    stdin_open: true
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    volumes:
+      - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+volumes:
+  mysql:
